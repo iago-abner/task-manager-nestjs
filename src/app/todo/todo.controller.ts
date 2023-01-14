@@ -12,6 +12,8 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateTodoSwagger } from '../swagger/create-todo-swagger';
+import { BadRequestSwagger } from '../swagger/helpers/bad-request-swagger';
+import { NotFoundSwagger } from '../swagger/helpers/not-found-swagger';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { TodoService } from './todo.service';
@@ -24,6 +26,11 @@ export class TodoController {
   @Get(':id')
   @ApiOperation({ summary: 'List one task' })
   @ApiResponse({ status: 200, description: 'Task data returned successfully' })
+  @ApiResponse({
+    status: 404,
+    description: 'Task not found',
+    type: NotFoundSwagger,
+  })
   async find(@Param('id', new ParseUUIDPipe()) id: string) {
     return await this.todoService.findOne(id);
   }
@@ -45,7 +52,11 @@ export class TodoController {
     status: 201,
     description: 'new task created successfully',
   })
-  @ApiResponse({ status: 400, description: 'invalid data parameters' })
+  @ApiResponse({
+    status: 400,
+    description: 'invalid data parameters',
+    type: BadRequestSwagger,
+  })
   @ApiOperation({ summary: 'Create a task' })
   async create(@Body() body: CreateTodoDto) {
     return await this.todoService.create(body);
@@ -53,6 +64,16 @@ export class TodoController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a task' })
+  @ApiResponse({
+    status: 400,
+    description: 'invalid data parameters',
+    type: BadRequestSwagger,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Task not found',
+    type: NotFoundSwagger,
+  })
   async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() body: UpdateTodoDto,
@@ -61,8 +82,14 @@ export class TodoController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a task' })
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a task' })
+  @ApiResponse({ status: 204, description: 'Task removed sucessfully' })
+  @ApiResponse({
+    status: 404,
+    description: 'Task not found',
+    type: NotFoundSwagger,
+  })
   async delete(@Param('id', new ParseUUIDPipe()) id: string) {
     await this.todoService.delete(id);
   }
